@@ -1,0 +1,88 @@
+---
+id: cc-INOI1602
+source: CC
+title: Brackets
+author: Kiruthees G
+---
+
+## Explanation
+
+We define $dp[i][j]$ as the maximum score obtainable from the subarray range $[i,j]$. Our goal is to find $dp[0][n-1]$.
+
+**Base Case:** For any interval where $i = j$, $dp[i][j] = 0$ because a single element cannot form a pair.
+
+For any interval $[i, j]$, there are two ways to form a solution:
+
+### Pairing the Endpoints: 
+We check if the elements at the boundary indices $i$ and $j$ can be paired. The condition given is $b[i] + K = b[j]$. **If valid**, the pair $(i, j)$ contributes $v[i] + v[j]$ to the score. 
+
+We add this to the best score from the elements strictly between them, which is $dp[i+1][j-1]$. If $i$ and $j$ are adjacent ($i+1 > j-1$), the inner score is $0$. 
+
+$$
+dp[i][j] = (v[i] + v[j]) + dp[i+1][j-1]
+$$
+
+### Splitting the Interval: 
+The optimal configuration for the range $[i, j]$ might involve splitting it into two separate subarrays. That is, We divide the problem into $[i, k]$ and $[k+1, j]$, where $i \le k < j$.
+$$
+dp[i][j] = max(dp[i][j],dp[i][k] + dp[k+1][j])
+$$
+
+The final value for $dp[i][j]$ is the maximum of the "pairing" case (if applicable) and all possible "splitting" cases.
+
+## Implementation
+
+**Time Complexity**: $\mathcal{O}(N^3)$
+
+<LanguageSection>
+<CPPSection>
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+#define ll long long
+
+const int N = 705;
+int dp[N][N];
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+    int n, K;
+    cin >> n >> K;
+
+    vector<int> v(n), b(n);
+    for (int i = 0; i < n; i++) cin >> v[i];
+    for (int i = 0; i < n; i++) cin >> b[i];
+
+    // dp[i][j] = max value from interval [i, j]
+
+    // Iterate backwards to ensure smaller sub-intervals are computed first
+    for (int i = n - 1; i >= 0; i--) {
+        for (int j = i + 1; j < n; j++) {
+
+            // Case 1: Try pairing endpoints i and j
+            // This forms a potential base value for dp[i][j] if the condition is met
+            if (b[i] + K == b[j]) {
+                int inside = (i + 1 <= j - 1) ? dp[i + 1][j - 1] : 0;
+                dp[i][j] = inside + v[i] + v[j];
+            }
+
+            // Case 2: Try splitting the interval at every possible point k
+            // This covers disjoint intervals and maximizes the score
+            for (int k = i; k < j; k++) {
+                dp[i][j] = max(dp[i][j],
+                               dp[i][k] + dp[k + 1][j]);
+            }
+        }
+    }
+
+    cout << dp[0][n - 1] << '\n';
+}
+
+```
+
+</CPPSection>
+</LanguageSection>
